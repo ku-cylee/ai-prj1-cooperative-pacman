@@ -17,6 +17,7 @@ In search.py, you will implement generic search algorithms which are called by
 Pacman agents (in searchAgents.py).
 """
 
+from game import Directions
 import util
 
 class SearchProblem:
@@ -72,36 +73,30 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
-# def depthFirstSearch(problem):
-#     """
-#     Search the deepest nodes in the search tree first.
 
-#     Your search algorithm needs to return a list of actions that reaches the
-#     goal. Make sure to implement a graph search algorithm.
+def treeSearch(problem, paths):
+    paths.push([(problem.getStartState(), 'Stop', 0)])
+    visited_states = []
 
-#     To get started, you might want to try some of these simple commands to
-#     understand the search problem that is being passed in:
-
-#     print("Start:", problem.getStartState())
-#     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
-#     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
-#     """
-#     "*** YOUR CODE HERE ***"
-#     fringe = util.Stack()
-    
-#     current = (problem.getStartState(), [], [])
-#     fringe.push(current)
-#     closed = []
+    while not paths.isEmpty():
+        current_path = paths.pop()
+        current_state = current_path[-1][0]
         
-#     while not fringe.isEmpty():
-#         node, path, total = fringe.pop()
-#         if problem.isGoalState(node):
-#             return path
-#         if not node in closed:
-#             closed.append(node)
-#             for coord, move, cost in problem.getSuccessors(node):
-#                 fringe.push((coord, path + [move], total + [cost])) 
-                
+        if problem.isGoalState(current_state):
+            return current_state, [path[1] for path in current_path[1:]]
+
+        if current_state in visited_states:
+            continue
+
+        visited_states.append(current_state)
+
+        for successor_node in problem.getSuccessors(current_state):
+            if successor_node[0] not in visited_states:
+                paths.push(current_path + [successor_node])
+
+    return None, [Directions.STOP]
+
+
 def depthFirstSearch(problem):
     """
     Search the deepest nodes in the search tree first.
@@ -116,83 +111,19 @@ def depthFirstSearch(problem):
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
-    "*** YOUR CODE HERE ***"
-       #I have to store how the algorithm got to where it is in its search
-    #For every new action between the previous node and the next one
-    #Add the action to a list of actions
-    #The right list of actions is found when the goal node has been found
-    #Make sure that it follows the search
-    
-    #Initialising stack, visited list, and list of actions
-    stack = util.Stack()
-    visited = []
-    path=[]
-    
-    #Pushing root node to the stack
-    startstate = problem.getStartState()
-    stack.push(startstate)
-    
+    return treeSearch(problem, util.Stack())
 
-    #Mark root node IN STACK as visited
-    visited.append(startstate)
-    
-
-    #Continue the for loop until the stack is empty
-    while not stack.isEmpty(): 
-       
-        
-    #Looks at the list of successors for the last state in the stack
-        for successor, action, cost in problem.getSuccessors(stack.pop()):
-
-            #Making sure we don't revisit the same node
-            if successor not in visited:
-                stack.push(successor) #Adding successor to the stack 
-                visited.append(successor) #Adding successor to visited so we don't revisit
-                path.append(action)
-#             print("check")
-            
-                
-            if problem.isGoalState(successor):
-                return path
-
-                
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
-    
-    fringe = util.Queue()
-    current = (problem.getStartState(), [])
-    fringe.push(current)
-    closed = []
-    
-    while not fringe.isEmpty():
-        node, path = fringe.pop()
-        if problem.isGoalState(node):
-            return path
-        if not node in closed:
-            closed.append(node)
-            for coord, move, cost in problem.getSuccessors(node):
-                fringe.push((coord, path + [move])) 
+    return treeSearch(problem, util.Queue())
+
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
-    
-    fringe = util.PriorityQueue()
-    counts = util.Counter()
-    current = (problem.getStartState(), [])
-    fringe.push(current, 0)
-    closed = []
-    
-    while not fringe.isEmpty():
-        node, path = fringe.pop()
-        if problem.isGoalState(node):
-            return path
-        if not node in closed:
-            closed.append(node)
-            for coord, move, cost in problem.getSuccessors(node):
-                counts[coord] = counts[node]
-                counts[coord] += cost
-                fringe.push((coord, path + [move]), counts[coord]) 
+    cost_function = lambda path: problem.getCostOfActions(p[1] for p in path[1:])
+    return treeSearch(problem, util.PriorityQueueWithFunction(cost_function))
+
 
 def nullHeuristic(state, problem=None):
     """
@@ -203,26 +134,9 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    
+    cost_function = lambda path: problem.getCostOfActions(p[1] for p in path[1:]) + heuristic(path[-1][0], problem)
+    return treeSearch(problem, util.PriorityQueueWithFunction(cost_function))
 
-    fringe = util.PriorityQueue()
-    counts = util.Counter()
-    current = (problem.getStartState(), [])    
-    counts[str(current[0])] += heuristic(current[0], problem)
-    fringe.push(current, counts[str(current[0])])
-    closed = []
-    
-    while not fringe.isEmpty():
-        node, path = fringe.pop()
-        if problem.isGoalState(node):
-            return path
-        if not node in closed:
-            closed.append(node)
-            for coord, move, cost in problem.getSuccessors(node):
-                newpath = path + [move]
-                counts[str(coord)] = problem.getCostOfActions(newpath)
-                counts[str(coord)] += heuristic(coord, problem)
-                fringe.push((coord, newpath), counts[str(coord)]) 
 
 # Abbreviations
 bfs = breadthFirstSearch
