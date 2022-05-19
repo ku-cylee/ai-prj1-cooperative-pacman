@@ -26,8 +26,31 @@ but when you're ready to test your own agent, replace it with MyAgent
 def createAgents(num_pacmen, agent='ClosestDotAgent'):
     return [eval(agent)(index=i) for i in range(num_pacmen)]
 
-preoccupiedFoods = []
+class SharedGameData:
+    def __init__(self):
+        self.remainingFoodsCount = None
+        self.preoccupiedFoods = []
 
+    def addFood(self, foodPosition):
+        self.preoccupiedFoods.append(foodPosition)
+        self.remainingFoodsCount -= 1
+
+    def removeFood(self, foodPosition):
+        self.preoccupiedFoods.remove(foodPosition)
+
+    def getFoods(self):
+        return self.preoccupiedFoods
+
+    def setFoodCount(self, state):
+        if self.remainingFoodsCount != None:
+            return
+        self.remainingFoodsCount = sum(row.count(True) for row in state.getFood())
+
+    def isFoodExist(self):
+        return self.remainingFoodsCount > 0
+
+shared = SharedGameData()
+    
 class MyAgent(Agent):
     """
     Implementation of your agent.
@@ -44,16 +67,18 @@ class MyAgent(Agent):
 
         if self.goal:
             currentPosition = state.getPacmanPosition(self.index)
-            self.preoccupiedFoods.remove(currentPosition)
+            self.shared.removeFood(currentPosition)
 
-        for foodX, foodY in self.preoccupiedFoods:
+        self.shared.setFoodCount(state)
+
+        for foodX, foodY in self.shared.getFoods():
             state.data.food[foodX][foodY] = False
 
         problem = AnyFoodSearchProblem(state, self.index)
-        self.goal, self.path = search.aStarSearch(problem, heuristic=search.nullHeuristic)
+        self.goal, self.path = search.breadthFirstSearch(problem)
 
         if self.goal:
-            self.preoccupiedFoods.append(self.goal)
+            self.shared.addFood(self.goal)
 
         return self.path.pop(0)
 
@@ -67,7 +92,7 @@ class MyAgent(Agent):
         "*** YOUR CODE HERE"
         self.path = []
         self.goal = None
-        self.preoccupiedFoods = preoccupiedFoods
+        self.shared = shared
 
 """
 Put any other SearchProblems or search methods below. You may also import classes/methods in
