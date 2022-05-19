@@ -26,6 +26,8 @@ but when you're ready to test your own agent, replace it with MyAgent
 def createAgents(num_pacmen, agent='ClosestDotAgent'):
     return [eval(agent)(index=i) for i in range(num_pacmen)]
 
+preoccupiedFoods = []
+
 class MyAgent(Agent):
     """
     Implementation of your agent.
@@ -37,8 +39,23 @@ class MyAgent(Agent):
         """
 
         "*** YOUR CODE HERE ***"
+        if self.path:
+            return self.path.pop(0)
 
-        raise NotImplementedError()
+        if self.goal:
+            currentPosition = state.getPacmanPosition(self.index)
+            self.preoccupiedFoods.remove(currentPosition)
+
+        for foodX, foodY in self.preoccupiedFoods:
+            state.data.food[foodX][foodY] = False
+
+        problem = AnyFoodSearchProblem(state, self.index)
+        self.goal, self.path = search.aStarSearch(problem, heuristic=search.nullHeuristic)
+
+        if self.goal:
+            self.preoccupiedFoods.append(self.goal)
+
+        return self.path.pop(0)
 
     def initialize(self):
         """
@@ -48,8 +65,9 @@ class MyAgent(Agent):
         """
 
         "*** YOUR CODE HERE"
-
-        raise NotImplementedError()
+        self.path = []
+        self.goal = None
+        self.preoccupiedFoods = preoccupiedFoods
 
 """
 Put any other SearchProblems or search methods below. You may also import classes/methods in
