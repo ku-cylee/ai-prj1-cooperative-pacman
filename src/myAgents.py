@@ -82,12 +82,35 @@ class MyAgent(Agent):
         if not shared.isFoodExist():
             self.goal, self.path = None, ['Stop']
         else:
-            self.goal, self.path = search.breadthFirstSearch(problem)
+            self.goal, self.path = self.breadthFirstSearch(problem)
 
         if self.goal:
             self.shared.addFood(self.goal)
 
         return self.path.pop(0)
+
+    def breadthFirstSearch(self, problem):
+        return self.treeSearch(problem, util.Queue())
+
+    def treeSearch(self, problem, paths):
+        paths.push([(problem.getStartState(), 'Stop', 0)])
+        visited_states = []
+
+        while not paths.isEmpty():
+            currentPath = paths.pop()
+            currentState = currentPath[-1][0]
+            
+            if problem.isGoalState(currentState):
+                return currentState, [path[1] for path in currentPath[1:]]
+
+            if currentState in visited_states:
+                continue
+
+            visited_states.append(currentState)
+
+            for successor_node in problem.getSuccessors(currentState):
+                if successor_node[0] not in visited_states:
+                    paths.push(currentPath + [successor_node])
 
     def initialize(self):
         """
