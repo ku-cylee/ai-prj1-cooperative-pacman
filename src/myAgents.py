@@ -28,8 +28,15 @@ def createAgents(num_pacmen, agent='ClosestDotAgent'):
 
 class SharedGameData:
     def __init__(self):
+        self.nextIdx = 1
         self.remainingFoodsCount = None
         self.preoccupiedFoods = []
+
+    def resetForNewGame(self, newIdx):
+        if self.nextIdx == newIdx:
+            self.nextIdx = newIdx + 1
+        else:
+            self.__init__()
 
     def addFood(self, foodPosition):
         self.preoccupiedFoods.append(foodPosition)
@@ -96,6 +103,7 @@ class MyAgent(Agent):
         self.path = []
         self.goal = None
         self.shared = shared
+        self.shared.resetForNewGame(self.index)
 
 """
 Put any other SearchProblems or search methods below. You may also import classes/methods in
