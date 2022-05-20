@@ -75,7 +75,10 @@ class MyAgent(Agent):
             state.data.food[foodX][foodY] = False
 
         problem = AnyFoodSearchProblem(state, self.index)
-        self.goal, self.path = search.breadthFirstSearch(problem)
+        if not shared.isFoodExist():
+            self.goal, self.path = None, ['Stop']
+        else:
+            self.goal, self.path = search.breadthFirstSearch(problem)
 
         if self.goal:
             self.shared.addFood(self.goal)
@@ -179,4 +182,3 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         if self.food[x][y] == True:
             return True
         return False
-
