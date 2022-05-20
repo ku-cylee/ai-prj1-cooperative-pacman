@@ -100,7 +100,7 @@ class MyAgent(Agent):
         while not paths.isEmpty():
             currentPath = paths.pop()
             currentState = currentPath[-1][0]
-            
+
             if problem.isGoalState(currentState):
                 return currentState, [path[1] for path in currentPath[1:]]
 
