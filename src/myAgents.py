@@ -23,7 +23,7 @@ IMPORTANT
 `agent` defines which agent you will use. By default, it is set to ClosestDotAgent,
 but when you're ready to test your own agent, replace it with MyAgent
 """
-def createAgents(num_pacmen, agent='ClosestDotAgent'):
+def createAgents(num_pacmen, agent='ExclusiveAgent'):
     return [eval(agent)(index=i) for i in range(num_pacmen)]
 
 class SharedGameData:
@@ -60,7 +60,7 @@ class SharedGameData:
 
 shared = SharedGameData()
 
-class MyAgent(Agent):
+class ExclusiveAgent(Agent):
     """
     Implementation of your agent.
     """
