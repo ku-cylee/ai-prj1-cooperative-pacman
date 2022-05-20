@@ -11,7 +11,7 @@
 # Student side autograding was added by Brad Miller, Nick Hay, and
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
-from game import Agent
+from game import Agent, Directions
 from searchProblems import PositionSearchProblem
 
 import util
@@ -30,7 +30,7 @@ class SharedGameData:
     def __init__(self):
         self.nextIdx = 1
         self.remainingFoodsCount = None
-        self.preoccupiedFoods = []
+        self.pretargetedFoods = []
 
     def resetForNewGame(self, newIdx):
         if self.nextIdx == newIdx:
@@ -40,15 +40,15 @@ class SharedGameData:
 
     def addFood(self, foodPosition):
         if foodPosition:
-            self.preoccupiedFoods.append(foodPosition)
+            self.pretargetedFoods.append(foodPosition)
             self.remainingFoodsCount -= 1
 
     def removeFood(self, foodPosition):
         if foodPosition:
-            self.preoccupiedFoods.remove(foodPosition)
+            self.pretargetedFoods.remove(foodPosition)
 
     def getFoods(self):
-        return self.preoccupiedFoods
+        return self.pretargetedFoods
 
     def setFoodCount(self, state):
         if self.remainingFoodsCount != None:
@@ -59,7 +59,7 @@ class SharedGameData:
         return self.remainingFoodsCount > 0
 
 shared = SharedGameData()
-    
+
 class MyAgent(Agent):
     """
     Implementation of your agent.
@@ -78,15 +78,15 @@ class MyAgent(Agent):
         self.shared.setFoodCount(state)
 
         problem = ExclusionSearchProblem(state, self.index, self.shared.getFoods())
-        self.goal, self.path = self.get_goal_and_path(problem)
+        self.goal, self.path = self.getGoalAndPath(problem)
 
         self.shared.addFood(self.goal)
 
         return self.path.pop(0)
 
-    def get_goal_and_path(self, problem):
+    def getGoalAndPath(self, problem):
         if not self.shared.isFoodExist():
-            return None, ['Stop'] * 100
+            return None, [Directions.STOP] * 100
         else:
             return self.breadthFirstSearch(problem)
 
@@ -94,7 +94,7 @@ class MyAgent(Agent):
         return self.treeSearch(problem, util.Queue())
 
     def treeSearch(self, problem, paths):
-        paths.push([(problem.getStartState(), 'Stop', 0)])
+        paths.push([(problem.getStartState(), Directions.STOP, 0)])
         visited_states = []
 
         while not paths.isEmpty():
@@ -112,6 +112,8 @@ class MyAgent(Agent):
             for successor_node in problem.getSuccessors(currentState):
                 if successor_node[0] not in visited_states:
                     paths.push(currentPath + [successor_node])
+
+        return None, Directions.STOP
 
     def initialize(self):
         """
