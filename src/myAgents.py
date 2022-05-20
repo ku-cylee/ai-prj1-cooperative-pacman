@@ -78,10 +78,7 @@ class MyAgent(Agent):
 
         self.shared.setFoodCount(state)
 
-        for foodX, foodY in self.shared.getFoods():
-            state.data.food[foodX][foodY] = False
-
-        problem = AnyFoodSearchProblem(state, self.index)
+        problem = ExclusionSearchProblem(state, self.index, self.shared.getFoods())
         if not shared.isFoodExist():
             self.goal, self.path = None, ['Stop']
         else:
@@ -104,6 +101,22 @@ class MyAgent(Agent):
         self.goal = None
         self.shared = shared
         self.shared.resetForNewGame(self.index)
+
+class ExclusionSearchProblem(PositionSearchProblem):
+
+    def __init__(self, gameState, agentIdx, excludedNodes):
+        self.food = gameState.getFood()
+
+        self.walls = gameState.getWalls()
+        self.startState = gameState.getPacmanPosition(agentIdx)
+        self.costFn = lambda x: 1
+        self._visited, self._visitedlist, self._expanded = {}, [], 0
+
+        self.excludedNodes = excludedNodes
+
+    def isGoalState(self, state):
+        x, y = state
+        return (state not in self.excludedNodes) and self.food[x][y]
 
 """
 Put any other SearchProblems or search methods below. You may also import classes/methods in
