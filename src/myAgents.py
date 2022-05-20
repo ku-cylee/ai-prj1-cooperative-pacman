@@ -39,11 +39,13 @@ class SharedGameData:
             self.__init__()
 
     def addFood(self, foodPosition):
-        self.preoccupiedFoods.append(foodPosition)
-        self.remainingFoodsCount -= 1
+        if foodPosition:
+            self.preoccupiedFoods.append(foodPosition)
+            self.remainingFoodsCount -= 1
 
     def removeFood(self, foodPosition):
-        self.preoccupiedFoods.remove(foodPosition)
+        if foodPosition:
+            self.preoccupiedFoods.remove(foodPosition)
 
     def getFoods(self):
         return self.preoccupiedFoods
@@ -72,22 +74,21 @@ class MyAgent(Agent):
         if self.path:
             return self.path.pop(0)
 
-        if self.goal:
-            currentPosition = state.getPacmanPosition(self.index)
-            self.shared.removeFood(currentPosition)
-
+        self.shared.removeFood(self.goal)
         self.shared.setFoodCount(state)
 
         problem = ExclusionSearchProblem(state, self.index, self.shared.getFoods())
-        if not shared.isFoodExist():
-            self.goal, self.path = None, ['Stop']
-        else:
-            self.goal, self.path = self.breadthFirstSearch(problem)
+        self.goal, self.path = self.get_goal_and_path(problem)
 
-        if self.goal:
-            self.shared.addFood(self.goal)
+        self.shared.addFood(self.goal)
 
         return self.path.pop(0)
+
+    def get_goal_and_path(self, problem):
+        if not self.shared.isFoodExist():
+            return None, ['Stop'] * 100
+        else:
+            return self.breadthFirstSearch(problem)
 
     def breadthFirstSearch(self, problem):
         return self.treeSearch(problem, util.Queue())
